@@ -6,35 +6,35 @@ import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import { toast } from 'react-toastify';
 import { deleteApi } from 'views/services/api';
+import Delete from '@mui/icons-material/Delete';
 
-const DeleteCustomer = (props) => {
-  const { open, handleClose, customerid } = props;
+const DeleteExpenses = (props) => {
+    const { open, handleClose, expenseid} = props;
   console.log('props ==>', props);
+
   //handle delete function-------------
-  const handleDelete = async () => {
-    try {
-      console.log(`/user/deteleuser/${customerid}`);
-      let result = await deleteApi(`/user/deteleuser/${customerid}`);
-      if (result) {
-        toast.success('Deleted Successfully');
-        handleClose();
-        //   setTimeout(() => {
-        //     navigate('/dashboard/lead');
-        //   }, 500);
-      } else {
-        toast.error('Cannot delete lead');
+    const handleDelete = async () => {
+      try {
+        console.log(`/expense/deleteexpense/${expenseid}`);
+        let result = await deleteApi(`/expense/deleteexpense/${expenseid}`);
+        console.log("result ===>",result);
+        if (result) {
+          toast.success('Deleted Successfully');
+          handleClose();
+        } else {
+          toast.error('Cannot delete call');
+        }
+      } catch (error) {
+        console.log(error);
+        toast.error('Cannot delete call');
       }
-    } catch (error) {
-      console.log(error);
-      toast.error('Cannot delete lead');
-    }
-  };
+    };
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Delete Customer</DialogTitle>
+      <DialogTitle>Delete Expense</DialogTitle>
       <DialogContent>
-        <p>Are you sure you want to delete this customer?</p>
+        <p>Are you sure you want to delete this expense?</p>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="primary">
@@ -48,4 +48,4 @@ const DeleteCustomer = (props) => {
   );
 };
 
-export default DeleteCustomer;
+export default DeleteExpenses;

@@ -44,6 +44,9 @@ router.post("/expense/addexpense", expense.addExpense);
 router.get("/expense/getallexpense/:id", expense.getAllExpenses);
 router.get("/expense/getallexpense_category/:id", expense.getAllExpensesCategory);
 router.get("/expense/getoneexpense/:id",expense.getOneExpenseData);
+router.patch("/expense/updateexpense/:id",expense.updateExpenseData);
+router.patch("/expense/updateexpense_category/:id",expense.updateExpenseCategoryData);
+router.delete("/expense/deleteexpense/:id", expense.deleteExpenseData);
 
 
 router.post("/call/add", call.addCall);
@@ -52,11 +55,16 @@ router.patch("/call/updatecalls/:id", call.updateCall);
 router.delete("/call/deletecall/:id",call.deleteCall);
 
 router.post("/vendor/addexpense", vendorexpense.addVendorExpense);
-router.get("/vendor/getallvendor_expense", vendorexpense.getAllVendorExpense);
+router.get("/vendor/getallvendor_expense/:id", vendorexpense.getAllVendorExpense);
+router.get("/vendor/getvendor_expensedata/:id", vendorexpense.getVendorExpenseDataById);
+router.patch("/vendor/update_expensedata/:id",vendorexpense.updateVendorExpenseData);
+router.delete("/vendor/delete_expensedata/:id",vendorexpense.deleteVendorExpenseData);
 
 router.post("/quote/add", quote.addQuote);
 router.post("/quote/addquotedetails", quote.addQuoteDetails);
-router.get("/quote/getallquotes", quote.getAllQuotes);
+router.get("/quote/getallquotes/:id", quote.getAllQuotes);
+router.get("/quote/getquotedetails/:id", quote.getQuoteDetailsById);
+
 
 router.post("/shipment/add", shipment.addShipment);
 router.post("/shipment/packages/add", shipment.addShipmentPackages);

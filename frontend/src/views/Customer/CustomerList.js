@@ -74,8 +74,9 @@ const CustomerList = () => {
       getApi(`/user/getalluser_byId/${user._id}`)
         .then((response) => {
           console.log('response ==>', response);
-          setCustomerData(response.data.data);
-          console.log('response.data.data ==>,response.data.data');
+          const filterData = response.data.data.filter((user) => user.role === 'Customer');
+          console.log('filterData ====>', filterData);
+          setCustomerData(filterData);
         })
         .catch((error) => {
           console.log('error ==>', error);

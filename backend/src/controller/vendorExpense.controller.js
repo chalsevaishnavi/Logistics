@@ -26,4 +26,34 @@ export class VendorExpenseController {
       return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
     }
   }
+
+  async getVendorExpenseDataById(req, res) {
+    try {
+      const result = await vendorexpense.getVendorExpenseDataById(req);
+      console.log("result ===========>", result);
+      return sendResponse(res, responseCode.OK, result);
+    } catch (error) {
+      return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
+    }
+  }
+
+  async updateVendorExpenseData(req, res) {
+    try {
+      const result = await vendorexpense.updateVendorExpenseData(req);
+      console.log("result ===========>", result);
+      return sendResponse(res, responseCode.OK, result);
+    } catch (error) {
+      return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
+    }
+  }
+
+  async deleteVendorExpenseData(req, res) {
+    try {
+      const result = await vendorexpense.deleteVendorExpenseData(req);
+      console.log("result ===========>", result);
+      return sendResponse(res, responseCode.OK, result);
+    } catch (error) {
+      return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
+    }
+  }
 }

@@ -7,33 +7,48 @@ import Radio from '@mui/material/Radio';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControl from '@mui/material/FormControl';
+import { postApi } from 'views/services/api';
 
 const AddStaff = () => {
   const formik = useFormik({
     initialValues: {
-      shipmentdate: '',
-      passwordexpecteddate: '',
-      senderInfo: '',
-      receiverInfo: '',
-      deliveryAddress: '',
-      contactPersonName: '',
-      phone: '',
-      fullLoad: '',
-      pickupAddress: ''
+      email: '',
+      password: '',
+      name: '',
+      phoneno: '',
+      role: '',
+      usernote: ''
     },
     validationSchema: Yup.object({
-      shipmentdate: Yup.string().required('Required'),
-      expecteddate: Yup.string().required('Required'),
-      senderInfo: Yup.string().required('Required'),
-      receiverInfo: Yup.string().required('Required'),
-      deliveryAddress: Yup.string().required('Required'),
-      contactPerson: Yup.string().required('Required'),
-      phone: Yup.string().required('Required'),
-      fullLoad: Yup.string().required('Required'),
-      pickupAddress: Yup.string().required('Required')
+      email: Yup.string().required('Email is Required'),
+      password: Yup.string().required('Password is Required'),
+      name: Yup.string().required('Name is Required'),
+      phoneno: Yup.string().required('Phone is Required'),
+      role: Yup.string().required('Role is Required'),
+      usernote: Yup.string().required('usernote is Required')
     }),
-    onSubmit: (values) => {
-      console.log(values);
+    onSubmit: (values, { resetForm }) => {
+      console.log('values ==========>', values);
+
+      try {
+        values.created_by = JSON.parse(localStorage.getItem('user'))._id;
+        console.log('values.created_by ==>', values.created_by);
+
+        postApi('/user/add', values)
+          .then((response) => {
+            console.log('response ==>', response);
+            toast.success('Deleted Successfully');
+            resetForm();
+          })
+          .catch((error) => {
+            console.log('error ', error);
+          });
+      } catch (error) {
+        console.error(error);
+      }
+      formik.resetForm();
+      toast.success('Staff added successfully!!');
+      resetForm();
     }
   });
 
@@ -90,13 +105,13 @@ const AddStaff = () => {
 
           <Grid item xs={12} md={6}>
             <TextField
-              name="phone"
+              name="phoneno"
               placeholder="Phone"
               fullWidth
-              value={formik.values.phone}
+              value={formik.values.phoneno}
               onChange={formik.handleChange}
-              error={formik.touched.phone && Boolean(formik.errors.phone)}
-              helperText={formik.touched.phone && formik.errors.phone}
+              error={formik.touched.phoneno && Boolean(formik.errors.phoneno)}
+              helperText={formik.touched.phoneno && formik.errors.phoneno}
               InputLabelProps={{
                 shrink: true
               }}
@@ -117,28 +132,26 @@ const AddStaff = () => {
               helperText={formik.touched.role && formik.errors.role}
             >
               <MenuItem value="">Roles</MenuItem>
-              <MenuItem value="Admin">Admin</MenuItem>
               <MenuItem value="Customer">Customer</MenuItem>
-              <MenuItem value="Admin">Employee</MenuItem>
-              <MenuItem value="Customer">Vendor</MenuItem>
+              <MenuItem value="Employee">Employee</MenuItem>
+              <MenuItem value="Vendor">Vendor</MenuItem>
             </TextField>
           </Grid>
 
-          <Grid item xs={12} md={6} />
+          {/* <Grid item xs={12} md={6} /> */}
 
-
-          <Grid item xs={12} md={12}>
+          <Grid item xs={12} md={6}>
             <TextField
               label="User Notes - For Internal use Only"
-              name="userNotes"
+              name="usernote"
               multiline
               rows={4}
               fullWidth
               variant="outlined"
-              value={formik.values.userNotes}
+              value={formik.values.usernote}
               onChange={formik.handleChange}
-              error={formik.touched.userNotes && Boolean(formik.errors.userNotes)}
-              helperText={formik.touched.userNotes && formik.errors.userNotes}
+              error={formik.touched.usernote && Boolean(formik.errors.usernote)}
+              helperText={formik.touched.usernote && formik.errors.usernote}
             />
           </Grid>
         </Grid>
@@ -146,10 +159,10 @@ const AddStaff = () => {
         <Grid container>
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-start', gap: 3, mt: 2 }}>
             <Button variant="contained" color="primary" type="submit">
-             Add Staff
+              Add Staff
             </Button>
             <Button variant="outlined" color="secondary" type="reset">
-             Return to the dashboard
+              Return to the dashboard
             </Button>
           </Grid>
         </Grid>

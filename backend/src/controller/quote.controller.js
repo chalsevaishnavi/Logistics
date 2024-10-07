@@ -37,4 +37,15 @@ export class QuotesController {
       return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
     }
   }
+
+  async getQuoteDetailsById(req, res) {
+    try {
+      const result = await quoteservices.getQuoteDetailsById(req);
+      console.log("result ===========>", result);
+
+      return sendResponse(res, responseCode.OK, result);
+    } catch (error) {
+      return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
+    }
+  }
 }

@@ -35,6 +35,10 @@ const ViewCustomer = Loadable(lazy(() => import('views/Customer/ViewCustomer')))
 
 const AddQuotes = Loadable(lazy(() => import('views/Quotes/AddQuotes')));
 const QuotesList = Loadable(lazy(() => import('views/Quotes/QuotesList')));
+const ViewQuotesDetails = Loadable(lazy(() => import('views/Quotes/ViewQuotesDetails')));
+
+
+
 const ShipmentList = Loadable(lazy(() => import('views/Shipment/ShipmentList')));
 const PriceList = Loadable(lazy(() => import('views/Price/PriceList')));
 const VendorList = Loadable(lazy(() => import('views/Vendors/VendorList/ShowVendors')));
@@ -46,6 +50,8 @@ const ShowLeads = Loadable(lazy(() => import('views/Leads/ShowLeads')));
 const ViewLead = Loadable(lazy(() => import('views/Leads/ViewLead')));
 const ShowCallLogs = Loadable(lazy(() => import('views/CallLogs/ShowCallLogs')));
 const ShowExpenses = Loadable(lazy(() => import('views/Expenses/ShowExpenses')));
+const ViewExpenses  = Loadable(lazy(() => import('views/Expenses/ViewExpenses')));
+const ViewVendorDetails = Loadable(lazy(() => import('views/Vendors/VendorExpenses/ViewVendorDetails')));
 const GeneralReport = Loadable(lazy(() => import('views/GeneralReports/GeneralReport')));
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -243,6 +249,33 @@ const MainRoutes = {
         {
           path: '/admin/view_customer/:id',
           element: <ViewCustomer />
+        }
+      ]
+    },
+    {
+      path: 'admin',
+      children: [
+        {
+          path: '/admin/view_expenses/:id',
+          element: <ViewExpenses />
+        }
+      ]
+    },
+    {
+      path: 'admin',
+      children: [
+        {
+          path: '/admin/view_vendor_details/:id',
+          element: <ViewVendorDetails />
+        }
+      ]
+    },
+    {
+      path: 'admin',
+      children: [
+        {
+          path: '/admin/view_quote_details/:id',
+          element: <ViewQuotesDetails />
         }
       ]
     },

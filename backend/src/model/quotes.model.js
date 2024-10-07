@@ -4,7 +4,7 @@ import { BaseSchema } from "../core/schema/base.schema.js";
 
 const quoteSchema = new Schema({
   ...BaseSchema.obj,
-  customerId: {
+  customer: {
     type: mongoose.Types.ObjectId,
     required: true,
     default: null,

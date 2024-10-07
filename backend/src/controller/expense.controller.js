@@ -49,9 +49,42 @@ export class ExpenseController {
   async getOneExpenseData(req, res) {
     try {
       const result = await expenseservices.getOneExpenseData(req);
+      console.log("here getOneExpenseData ===>",result);
+      
+
       return sendResponse(res, responseCode.OK, result);
     } catch (error) {
       return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
     }
   }
+
+  async updateExpenseData(req, res) {
+    try {
+      const result = await expenseservices.updateExpenseData(req);
+      console.log("result ==>",result);
+      
+      return sendResponse(res, responseCode.OK, result);
+    } catch (error) {
+      return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
+    }
+  }
+
+  async updateExpenseCategoryData(req, res) {
+    try {
+      const result = await expenseservices.updateExpenseCategoryData(req);
+      return sendResponse(res, responseCode.OK, result);
+    } catch (error) {
+      return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
+    }
+  }
+
+  async deleteExpenseData(req, res) {
+    try {
+      const result = await expenseservices.deleteExpenseData(req);
+      return sendResponse(res, responseCode.OK, result);
+    } catch (error) {
+      return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
+    }
+  }
+
 }

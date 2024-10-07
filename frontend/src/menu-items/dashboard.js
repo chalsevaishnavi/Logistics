@@ -361,7 +361,7 @@ const reports = {
 };
 
 const superadmin = {
-  title: 'SuperAdminDashboard',
+  title: 'Super Admin Dashboard',
   type: 'group',
   children: [
     {
@@ -383,4 +383,99 @@ const superadmin = {
   ]
 };
 
-export { dashboard, customer, quotes, shipment, vendor, staff, reports, superadmin };
+const employee = {
+  title: 'Employee Dashboard',
+  type: 'group',
+  children: [
+    {
+      id: '01',
+      title: 'Dashboard',
+      type: 'item',
+      url: '/admin/dashboard',
+      icon: icons.IconHome,
+      breadcrumbs: false
+    },
+    {
+      id: '02',
+      title: 'Create Shipment',
+      type: 'item',
+      url: '/admin/shipment/add',
+      icon: icons.IconAntennaBars5,
+      breadcrumbs: false
+    },
+    {
+      id: '03',
+      title: 'Add Customer',
+      type: 'item',
+      url: '/admin/customer/add',
+      icon: icons.IconPhoneCheck,
+      breadcrumbs: false
+    },
+    {
+      id: '04',
+      title: 'Customer List',
+      type: 'item',
+      url: '/admin/customers',
+      icon: icons.IconNotebook,
+      breadcrumbs: false
+    },
+    {
+      id: '05',
+      title: 'Create Quotes',
+      type: 'item',
+      url: '/admin/quotes/add',
+      icon: icons.IconChecklist,
+      breadcrumbs: false
+    },
+    {
+      id: '06',
+      title: 'Quotes List',
+      type: 'item',
+      url: '/admin/quotes',
+      icon: icons.IconUsers,
+      breadcrumbs: false
+    },
+    {
+      id: '07',
+      title: 'Shipment List',
+      type: 'item',
+      url: '/admin/shipments',
+      icon: icons.IconPhoneCall,
+      breadcrumbs: false
+    },
+    {
+      id: '08',
+      title: 'Price List',
+      type: 'item',
+      url: '/admin/price',
+      icon: icons.IconMail,
+      breadcrumbs: false
+    },
+    {
+      id: '09',
+      title: 'Vendors List',
+      type: 'item',
+      url: '/admin/vendors',
+      icon: icons.IconCalendarEvent,
+      breadcrumbs: false
+    },
+    {
+      id: '10',
+      title: 'Vendors Expenses',
+      type: 'item',
+      url: '/admin/vendor/expenses',
+      icon: icons.IconFileUpload,
+      breadcrumbs: false
+    },
+    {
+      id: '11',
+      title: 'Vendors Payments',
+      type: 'item',
+      url: '/admin/vendor/payments',
+      icon: icons.IconFileInvoice,
+      breadcrumbs: false
+    }
+  ]
+};
+
+export { dashboard, customer, quotes, shipment, vendor, staff, reports, superadmin, employee };

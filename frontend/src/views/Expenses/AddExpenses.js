@@ -21,43 +21,44 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { postApi } from 'views/services/api';
+import { patchApi } from 'views/services/api';
 import { useEffect } from 'react';
 import { getApi } from 'views/services/api';
+import moment from 'moment';
 
 const AddExpenses = (props) => {
-  const { open, handleClose } = props;
-
   const user = JSON.parse(localStorage.getItem('user'));
+
+  const { open, handleClose, editData } = props;
+  console.log('props ======>', props);
+
   const [tabValue, setTabValue] = useState('1');
   const [expenses, setExpenses] = useState([]);
-
-  
 
   const validationSchemaForExpenses = yup.object({
     category: yup.string().required('Category is required'),
     date: yup.string().required('Date is required'),
     name: yup.string().required('Name is required'),
     amount: yup.number().required('Amount is required'),
-    note: yup.string().required('Note is required'),
+    note: yup.string().required('Note is required')
   });
 
   const validationSchemaForExpensesCategory = yup.object({
     expenseCategoryName: yup.string().required('Category is required'),
-    note: yup.string().required('Note is required')
+    description: yup.string().required('Note is required')
   });
 
   const initialValues = {
     expenseCategoryName: '',
-    note: '',
+    description: ''
   };
 
-  const initialValuesForExpense  = {
+  const initialValuesForExpense = {
     category: '',
     date: '',
     name: '',
     amount: '',
-    note: '',
-    
+    note: ''
   };
 
   const formik = useFormik({
@@ -69,26 +70,54 @@ const AddExpenses = (props) => {
       try {
         values.created_by = JSON.parse(localStorage.getItem('user'))._id;
         console.log('values.created_by ==>', values.created_by);
+
         if (tabValue === '2') {
-          postApi(`/expense/addcategory`, values)
-            .then((response) => {
-              if (response) {
-                console.log('response ==>', response);
-              }
-            })
-            .catch((error) => {
-              console.log('error ==>', error);
-            });
+          if (editData) {
+            console.log("---->",`/expense/updateexpense_category/${editData.expenseCategory._id}`);
+            console.log("values ===>",values);
+            
+            patchApi(`/expense/updateexpense_category/${editData.expenseCategory._id}`, values)
+              .then((response) => {
+                if (response) {
+                  console.log('response for edit ==>', response);
+                }
+              })
+              .catch((error) => {
+                console.log('error ==>', error);
+              });
+          } else {
+            postApi(`/expense/addcategory`, values)
+              .then((response) => {
+                if (response) {
+                  console.log('response ==>', response);
+                }
+              })
+              .catch((error) => {
+                console.log('error ==>', error);
+              });
+          }
         } else {
-          postApi(`/expense/addexpense`, values)
-            .then((response) => {
-              if (response) {
-                console.log('response ==>', response);
-              }
-            })
-            .catch((error) => {
-              console.log('error ==>', error);
-            });
+          if (editData) {
+            patchApi(`/expense/updateexpense/${editData._id}`, values)
+              .then((response) => {
+                if (response) {
+                  console.log('response for edit ==>', response);
+                }
+              })
+              .catch((error) => {
+                console.log('error ==>', error);
+              });
+          } else {
+            postApi(`/expense/addexpense`, values)
+              .then((response) => {
+                if (response) {
+                  console.log('response ==>', response);
+                }
+              })
+              .catch((error) => {
+                console.log('error ==>', error);
+              });
+          }
         }
       } catch (error) {
         console.log('error ==>', error);
@@ -115,6 +144,21 @@ const AddExpenses = (props) => {
   useEffect(() => {
     fetchExpenseCategory();
   }, [open]);
+
+  useEffect(() => {
+    if (open && editData) {
+      const formattedDate = moment(editData.date).format('YYYY-MM-DD');
+      formik.setValues({
+        category: editData.expense_categoryId || '',
+        date: formattedDate || '',
+        name: editData.name || '',
+        amount: editData.amount || '',
+        note: editData.note || '',
+        expenseCategoryName: editData.expenseCategory.name || '',
+        description: editData.expenseCategory.description || ''
+      });
+    }
+  }, [open, editData, tabValue]);
 
   return (
     <div>
@@ -242,17 +286,17 @@ const AddExpenses = (props) => {
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
-                      id="note"
-                      name="note"
-                      label="note"
+                      id="description"
+                      name="description"
+                      label="description"
                       multiline
                       rows={4}
                       size="small"
                       fullWidth
-                      value={formik.values.note}
+                      value={formik.values.description}
                       onChange={formik.handleChange}
-                      error={formik.touched.note && Boolean(formik.errors.note)}
-                      helperText={formik.touched.note && formik.errors.note}
+                      error={formik.touched.description && Boolean(formik.errors.description)}
+                      helperText={formik.touched.description && formik.errors.description}
                     />
                   </Grid>
                 </Grid>

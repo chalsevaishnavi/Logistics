@@ -6,7 +6,6 @@ const quotesDetailsSchema = new Schema({
   ...BaseSchema.obj,
   quoteId: {
     type: mongoose.Types.ObjectId,
-    required: true,
     default: null,
   },
   from: {

@@ -5,10 +5,10 @@ import mongoose from "mongoose";
 export class ExpenseServices {
   async addExpenseCategory(req) {
     try {
-      const { expenseCategoryName, note, created_by } = req?.body;
+      const { expenseCategoryName, description, created_by } = req?.body;
       const addCategory = await ExpenseCategoryModel({
         name: expenseCategoryName,
-        description: note,
+        description: description,
         created_by: created_by,
       });
       console.log("addCategory =====>", addCategory);
@@ -69,7 +69,10 @@ export class ExpenseServices {
             note: 1,
             date: 1,
             amount: 1,
+            expense_categoryId: 1,
             "expenseCategory.name": 1,
+            "expenseCategory.description": 1,
+            "expenseCategory._id": 1,
           },
         },
       ]);
@@ -97,10 +100,35 @@ export class ExpenseServices {
 
   async getOneExpenseData(req) {
     try {
-      const result = await ExpenseModel.findOne({
-        _id: req.params.id,
-        deleted: false,
-      });
+      const result = await ExpenseModel.aggregate([
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(req.params.id),
+          },
+        },
+        {
+          $lookup: {
+            from: "expensecategories",
+            localField: "expense_categoryId",
+            foreignField: "_id",
+            as: "expenseCategory",
+          },
+        },
+        {
+          $unwind: "$expenseCategory",
+        },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            note: 1,
+            date: 1,
+            amount: 1,
+            "expenseCategory.name": 1,
+            "expenseCategory.description": 1,
+          },
+        },
+      ]);
       return result;
     } catch (error) {
       console.error(error);
@@ -110,13 +138,62 @@ export class ExpenseServices {
 
   async updateExpenseData(req) {
     try {
-      const result = await ExpenseModel.updateOne({
-        _id: req.params.id,
-      },{
-        $set: {
-          
+      const result = await ExpenseModel.updateOne(
+        {
+          _id: req.params.id,
+        },
+        {
+          $set: {
+            name: req.body.name,
+            note: req.body.note,
+            date: req.body.date,
+            amount: req.body.amount,
+            expense_categoryId: req.body.category,
+          },
         }
-      });
+      );
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async updateExpenseCategoryData(req) {
+    console.log("updateExpenseCategoryData id ==>", req.params.id);
+
+    try {
+      const result = await ExpenseCategoryModel.updateOne(
+        {
+          _id: req.params.id,
+        },
+        {
+          $set: {
+            name: req.body.expenseCategoryName,
+            description: req.body.description,
+          },
+        }
+      );
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async deleteExpenseData(req) {
+    try {
+      const result = await ExpenseModel.updateOne(
+        {
+          _id: req.params.id,
+        },
+        {
+          $set: {
+            deleted: true,
+          },
+        }
+      );
+      return result;
     } catch (error) {
       console.error(error);
       throw error;

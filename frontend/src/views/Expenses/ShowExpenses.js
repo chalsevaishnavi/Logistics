@@ -13,22 +13,21 @@ import AddExpenses from './AddExpenses';
 import { getApi } from 'views/services/api';
 import { useEffect } from 'react';
 import moment from 'moment';
-
-
+import DeleteExpenses from './DeleteExpenses';
+import { useNavigate } from 'react-router';
 
 // ----------------------------------------------------------------------
 
-
-
 const ShowExpenses = () => {
-  // State to manage the popover
-
   const user = JSON.parse(localStorage.getItem('user'));
+
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [open, setOpenAdd] = useState(false);
   const [expenseData, setExpenseData] = useState([]);
+  const [openDelete, setOpenDelete] = useState(false);
 
+  const navigate = useNavigate();
 
   // Function to handle opening the popover
   const handlePopoverOpen = (event, row) => {
@@ -39,26 +38,38 @@ const ShowExpenses = () => {
   // Function to handle closing the popover
   const handlePopoverClose = () => {
     setAnchorEl(null);
-    setSelectedRow(null);
+    // setSelectedRow(null);
   };
 
   // Click handlers for menu items
   const handleEdit = () => {
     // Implement edit functionality
-    console.log('Edit clicked for:', selectedRow);
+    console.log('Edit clicked for =====>', selectedRow);
+    if (selectedRow) {
+      setOpenAdd(true);
+    }
     handlePopoverClose();
   };
 
   const handleView = () => {
     // Implement view functionality
     console.log('View clicked for:', selectedRow);
+    if(selectedRow){
+      navigate(`/admin/view_expenses/${selectedRow?._id}`);
+    }
     handlePopoverClose();
   };
 
   const handleDelete = () => {
-    // Implement delete functionality
     console.log('Delete clicked for:', selectedRow);
+    if(selectedRow){
+      setOpenDelete(true);
+    }
     handlePopoverClose();
+  };
+
+  const handleCloseDelete = () => {
+    setOpenDelete(false);
   };
 
   // Columns definition for DataGrid
@@ -68,11 +79,7 @@ const ShowExpenses = () => {
       headerName: 'Expense Category Name',
       flex: 1,
       cellClassName: 'name-column--cell name-column--cell--capitalize',
-      renderCell: (params) => (
-        <Typography>
-          {params.row.expenseCategory ? params.row.expenseCategory.name : 'N/A'}
-        </Typography>
-      )
+      renderCell: (params) => <Typography>{params.row.expenseCategory ? params.row.expenseCategory.name : 'N/A'}</Typography>
     },
     {
       field: 'name',
@@ -83,13 +90,9 @@ const ShowExpenses = () => {
       field: 'date',
       headerName: 'Date',
       flex: 1,
-      renderCell: (params) => (
-        <Typography>
-          {params.row.date ? moment(params.row.date).format('DD/MM/YYYY') : 'N/A'}
-        </Typography>
-      )
+      renderCell: (params) => <Typography>{params.row.date ? moment(params.row.date).format('DD/MM/YYYY') : 'N/A'}</Typography>
     },
-   
+
     {
       field: 'amount',
       headerName: 'Amount',
@@ -130,7 +133,6 @@ const ShowExpenses = () => {
         .then((response) => {
           console.log('response ================>', response);
           setExpenseData(response?.data?.data);
-          
         })
         .catch((error) => {
           console.log('error ==>', error);
@@ -142,11 +144,12 @@ const ShowExpenses = () => {
 
   useEffect(() => {
     fetchExpenseData();
-  }, [open]);
+  }, [open, openDelete]);
 
   return (
     <>
-      <AddExpenses open={open} handleClose={handleCloseAdd} />
+      <AddExpenses open={open} handleClose={handleCloseAdd} editData={selectedRow} />
+      <DeleteExpenses open={openDelete} handleClose={handleCloseDelete} expenseid={selectedRow?._id}/>
       <Container>
         <Stack direction="row" alignItems="center" mb={5} justifyContent="space-between">
           <Typography variant="subtitle1" gutterBottom sx={{ fontSize: '1.3rem' }}>

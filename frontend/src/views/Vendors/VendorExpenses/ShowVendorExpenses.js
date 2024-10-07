@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Stack, Button, Container, Typography, Box, Card, IconButton, Popover, MenuItem } from '@mui/material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
@@ -10,7 +10,10 @@ import SimCardDownloadIcon from '@mui/icons-material/SimCardDownload';
 import AddVendorExpenses from './AddVendorExpenses';
 import Iconify from 'ui-component/iconify/Iconify';
 import TableStyle from 'ui-component/TableStyle';
-
+import { getApi } from 'views/services/api';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
+import DeleteVendorExpense from './DeleteVendorExpense';
 
 // ----------------------------------------------------------------------
 
@@ -31,9 +34,15 @@ const leadData = [
 
 const ShowVendorExpenses = () => {
   // State to manage the popover
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  const navigate = useNavigate();
+
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [open, setOpenAdd] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [vendorExpenseData, setVendorExpenseData] = useState([]);
 
   // Function to handle opening the popover
   const handlePopoverOpen = (event, row) => {
@@ -44,49 +53,83 @@ const ShowVendorExpenses = () => {
   // Function to handle closing the popover
   const handlePopoverClose = () => {
     setAnchorEl(null);
-    setSelectedRow(null);
+    // setSelectedRow(null);
   };
 
   // Click handlers for menu items
   const handleEdit = () => {
-    // Implement edit functionality
     console.log('Edit clicked for:', selectedRow);
+    if(selectedRow){
+      setOpenAdd(true);
+    }
     handlePopoverClose();
   };
 
   const handleView = () => {
     // Implement view functionality
-    console.log('View clicked for:', selectedRow);
+    console.log('View clicked for =====>', selectedRow);
+    if (selectedRow) {
+      navigate(`/admin/view_vendor_details/${selectedRow?._id}`);
+    }
     handlePopoverClose();
   };
 
   const handleDelete = () => {
     // Implement delete functionality
     console.log('Delete clicked for:', selectedRow);
+    if(selectedRow){
+      setOpenDelete(true);
+
+    }
     handlePopoverClose();
   };
+
+  const handleCloseDelete = () => {
+    setOpenDelete(false);
+    
+  };
+
+  const fetchVendorData = async () => {
+    try {
+      getApi(`/vendor/getallvendor_expense/${user._id}`)
+        .then((response) => {
+          console.log('response =============>', response);
+          setVendorExpenseData(response.data.data);
+        })
+        .catch((error) => {
+          console.log('error ==>', error);
+        });
+    } catch (error) {
+      console.log('error ==>', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchVendorData();
+  }, [open, openDelete]);
 
   // Columns definition for DataGrid
   const columns = [
     {
-      field: 'id',
-      headerName: 'Id'
+      field: 'vendordata.name',
+      headerName: 'Vendor Name',
+      flex: 1,
+      cellClassName: 'name-column--cell name-column--cell--capitalize',
+      renderCell: (params) => <Typography>{params.row.vendordata ? params.row.vendordata.name : 'N/A'}</Typography>
     },
     {
       field: 'name',
       headerName: 'Name',
-      flex: 1,
-      cellClassName: 'name-column--cell name-column--cell--capitalize'
+      flex: 1
     },
     {
-      field: 'email',
-      headerName: 'Email',
-      flex: 1,
-      cellClassName: 'name-column--cell--capitalize'
+      field: 'amount',
+      headerName: 'Amount',
+      flex: 1
     },
     {
-      field: 'phone',
-      headerName: 'Phone',
+      field: 'note',
+      headerName: 'note',
       flex: 1
     },
     {
@@ -120,7 +163,8 @@ const ShowVendorExpenses = () => {
 
   return (
     <>
-      <AddVendorExpenses open={open} handleClose={handleCloseAdd} />
+      <AddVendorExpenses open={open} handleClose={handleCloseAdd} editData={selectedRow} />
+      <DeleteVendorExpense open={openDelete} handleClose={handleCloseDelete} vendorid={selectedRow?._id} />
       <Container>
         <Stack direction="row" alignItems="center" mb={5} justifyContent="space-between">
           <Typography variant="subtitle1" gutterBottom sx={{ fontSize: '1.3rem' }}>
@@ -158,10 +202,10 @@ const ShowVendorExpenses = () => {
           <Box width="100%">
             <Card sx={{ height: 600 }}>
               <DataGrid
-                rows={leadData}
+                rows={vendorExpenseData}
                 columns={columns}
-                // checkboxSelection
-                getRowId={(row) => row.id}
+                checkboxSelection
+                getRowId={(row) => row._id}
                 components={{ Toolbar: GridToolbar }}
                 componentsProps={{ toolbar: { showQuickFilter: true } }}
               />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Stack, Button, Container, Typography, Box, Card, IconButton, Popover, MenuItem } from '@mui/material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
@@ -7,24 +7,23 @@ import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
 import TableStyle from '../../ui-component/TableStyle';
+import { getApi } from 'views/services/api';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import EditQuote from './EditQuote';
 
 // ----------------------------------------------------------------------
 
-const leadData = [
-  {
-    id: 1,
-    quotationnumber: 'GLQ0002',
-    name: 'Jonny Doe',
-    from: 'East',
-    to: 'West',
-    status: 'Active'
-  }
-];
-
 const QuotesList = () => {
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  const navigate = useNavigate();
+
   // State to manage the popover
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [quotesData, setQuotesData] = useState([]);
+  const [openEdit, setEditOpen] = useState(false);
 
   // Function to handle opening the popover
   const handlePopoverOpen = (event, row) => {
@@ -35,19 +34,27 @@ const QuotesList = () => {
   // Function to handle closing the popover
   const handlePopoverClose = () => {
     setAnchorEl(null);
-    setSelectedRow(null);
+    // setSelectedRow(null);
   };
 
   // Click handlers for menu items
   const handleEdit = () => {
-    // Implement edit functionality
-    console.log('Edit clicked for:', selectedRow);
+    console.log('Edit clicked ============>', selectedRow);
+    if (selectedRow) {
+      setEditOpen(true);
+    }
     handlePopoverClose();
   };
 
+  const handleEditClose = () => {
+    setEditOpen(false);
+  };
+
   const handleView = () => {
-    // Implement view functionality
     console.log('View clicked for:', selectedRow);
+    if (selectedRow) {
+      navigate(`/admin/view_quote_details/${selectedRow?._id}`);
+    }
     handlePopoverClose();
   };
 
@@ -57,33 +64,51 @@ const QuotesList = () => {
     handlePopoverClose();
   };
 
+  const fetchQuotesData = async () => {
+    try {
+      getApi(`/quote/getallquotes/${user._id}`)
+        .then((response) => {
+          console.log('all quotes here ======>', response);
+          setQuotesData(response.data.data);
+        })
+        .catch((error) => {
+          console.log('error ==>', error);
+        });
+    } catch (error) {
+      console.log('error ==>', error);
+    }
+  };
+  console.log('quotesData ==>', quotesData);
+
+  useEffect(() => {
+    fetchQuotesData();
+  }, []);
+
   // Columns definition for DataGrid
   const columns = [
     {
-      field: 'id',
-      headerName: 'Id'
-    },
-    {
-      field: 'quotationnumber',
+      field: 'quotationNo',
       headerName: 'Quotation Number',
       flex: 1,
       cellClassName: 'name-column--cell name-column--cell--capitalize'
     },
     {
-      field: 'name',
-      headerName: 'Name',
+      field: 'customerdata.name',
+      headerName: 'Customer Name',
       flex: 1,
-      cellClassName: 'name-column--cell--capitalize'
+      renderCell: (params) => <Typography>{params.row.customerdata ? params.row.customerdata.name : 'N/A'}</Typography>
     },
     {
       field: 'from',
       headerName: 'From',
-      flex: 1
+      flex: 1,
+      renderCell: (params) => <Typography>{params.row.quotedata ? params.row.quotedata.from : 'N/A'}</Typography>
     },
     {
       field: 'to',
       headerName: 'To',
-      flex: 1
+      flex: 1,
+      renderCell: (params) => <Typography>{params.row.quotedata ? params.row.quotedata.to : 'N/A'}</Typography>
     },
     {
       field: 'status',
@@ -113,6 +138,7 @@ const QuotesList = () => {
 
   return (
     <>
+      <EditQuote open={openEdit} handleClose={handleEditClose} data={selectedRow} />
       <Container>
         <Stack direction="row" alignItems="center" mb={5} justifyContent="space-between">
           <Typography variant="subtitle1" gutterBottom sx={{ fontSize: '1.3rem' }}>
@@ -133,9 +159,9 @@ const QuotesList = () => {
           <Box width="100%">
             <Card sx={{ height: 600 }}>
               <DataGrid
-                rows={leadData}
+                rows={quotesData}
                 columns={columns}
-                getRowId={(row) => row.id}
+                getRowId={(row) => row._id}
                 components={{ Toolbar: GridToolbar }}
                 componentsProps={{ toolbar: { showQuickFilter: true } }}
               />

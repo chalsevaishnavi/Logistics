@@ -9,6 +9,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddVendor from './AddVendor';
 import TableStyle from 'ui-component/TableStyle';
 import Iconify from 'ui-component/iconify/Iconify';
+import { getApi } from 'views/services/api';
+import { useEffect } from 'react';
+import DeleteVendor from './DeleteVendor';
 
 // ----------------------------------------------------------------------
 
@@ -17,22 +20,25 @@ const leadData = [
     id: 1,
     name: 'Jonny Doe',
     email: 'jonny@gmail.com',
-    phone: '9981923587',
+    phone: '9981923587'
   },
   {
     id: 2,
     name: 'Jane Smith',
     email: 'jane.smith@example.com',
-    phone: '9876543210',
+    phone: '9876543210'
   }
   // Add more data as needed
 ];
 
 const VendorList = () => {
+  const user = JSON.parse(localStorage.getItem('user'));
   // State to manage the popover
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [open, setOpenAdd] = useState(false);
+  const [vendorData, setVendorData] = useState([]);
+  const [openDeleteVendor, setOpenDeleteVendor] = useState(false);
 
   // Function to handle opening the popover
   const handlePopoverOpen = (event, row) => {
@@ -43,13 +49,15 @@ const VendorList = () => {
   // Function to handle closing the popover
   const handlePopoverClose = () => {
     setAnchorEl(null);
-    setSelectedRow(null);
+    // setSelectedRow(null);
   };
 
   // Click handlers for menu items
   const handleEdit = () => {
-    // Implement edit functionality
     console.log('Edit clicked for:', selectedRow);
+    if (selectedRow) {
+      setOpenAdd(true);
+    }
     handlePopoverClose();
   };
 
@@ -62,15 +70,37 @@ const VendorList = () => {
   const handleDelete = () => {
     // Implement delete functionality
     console.log('Delete clicked for:', selectedRow);
+    setOpenDeleteVendor(true);
     handlePopoverClose();
   };
 
+  const handleCloseDelete = () => {
+    setOpenDeleteVendor(false);
+  };
+
+  const fetchVendorData = async () => {
+    try {
+      getApi(`/user/getalluser_byId/${user._id}`)
+        .then((response) => {
+          console.log('response ==>', response);
+          const filterData = response.data.data.filter((user) => user.role === 'Vendor');
+          console.log('filterData ====>', filterData);
+          setVendorData(filterData);
+        })
+        .catch((error) => {
+          console.log('error ==>', error);
+        });
+    } catch (error) {
+      console.log('error ==>', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchVendorData();
+  },[openDeleteVendor]);
+
   // Columns definition for DataGrid
   const columns = [
-    {
-      field: 'id',
-      headerName: 'Id'
-    },
     {
       field: 'name',
       headerName: 'Name',
@@ -84,9 +114,37 @@ const VendorList = () => {
       cellClassName: 'name-column--cell--capitalize'
     },
     {
-      field: 'phone',
+      field: 'phoneno',
       headerName: 'Phone',
       flex: 1
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <Box
+            sx={
+              params?.value == 1
+                ? {
+                    backgroundColor: '#01B574',
+                    color: 'white',
+                    padding: '4px',
+                    borderRadius: '5px'
+                  }
+                : {
+                    backgroundColor: 'red',
+                    color: 'white',
+                    padding: '4px',
+                    borderRadius: '5px'
+                  }
+            }
+          >
+            {params?.value === 1 ? 'Active' : 'Inactive'}
+          </Box>
+        );
+      }
     },
     {
       field: 'action',
@@ -119,7 +177,8 @@ const VendorList = () => {
 
   return (
     <>
-      <AddVendor open={open} handleClose={handleCloseAdd} />
+      <AddVendor open={open} handleClose={handleCloseAdd} data={selectedRow} />
+      <DeleteVendor open={openDeleteVendor} handleClose={handleCloseDelete} vendorid={selectedRow?._id}/>
       <Container>
         <Stack direction="row" alignItems="center" mb={5} justifyContent="space-between">
           <Typography variant="subtitle1" gutterBottom sx={{ fontSize: '1.3rem' }}>
@@ -149,10 +208,10 @@ const VendorList = () => {
           <Box width="100%">
             <Card sx={{ height: 600 }}>
               <DataGrid
-                rows={leadData}
+                rows={vendorData}
                 columns={columns}
-                // checkboxSelection
-                getRowId={(row) => row.id}
+                checkboxSelection
+                getRowId={(row) => row._id}
                 components={{ Toolbar: GridToolbar }}
                 componentsProps={{ toolbar: { showQuickFilter: true } }}
               />

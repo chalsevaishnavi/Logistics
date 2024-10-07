@@ -1,21 +1,45 @@
-import React from 'react';
-import { Box, Grid, TextField, MenuItem, Typography, Button, FormLabel, Divider } from '@mui/material';
-import { Form, useFormik } from 'formik';
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Grid,
+  TextField,
+  MenuItem,
+  Typography,
+  Button,
+  FormLabel,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper
+} from '@mui/material';
+import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import TableStyle from '../../ui-component/TableStyle';
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import { Card } from '@mui/material';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
-import Radio from '@mui/material/Radio';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControl from '@mui/material/FormControl';
-import { Switch } from '@mui/material';
 import AddQuotetionDetails from './AddQuotetionDetails';
-import { useState } from 'react';
+import { postApi, getApi } from 'views/services/api';
 
 const AddQuotes = () => {
   const [openAdd, setOpenAdd] = useState(false);
+  const [customers, setCustomers] = useState([]);
+  const [quoteDetails, setQuoteDetails] = useState([]);
+
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await getApi(`/user/getalluser_byId/${user._id}`);
+      const filterCustomer = response.data.data.filter((item) => item.role === 'Customer');
+      setCustomers(filterCustomer);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
 
   const handleOpenAdd = () => {
     setOpenAdd(true);
@@ -25,37 +49,61 @@ const AddQuotes = () => {
     setOpenAdd(false);
   };
 
+  const handleAddQuoteDetails = (details) => {
+    console.log('details--->', details);
+    setQuoteDetails((prevDetails) => [...prevDetails, details]);
+  };
+  console.log('quoteDetails =====>', quoteDetails);
+
   const formik = useFormik({
     initialValues: {
-      shipmentdate: '',
-      expecteddate: '',
-      senderInfo: '',
-      receiverInfo: '',
-      deliveryAddress: '',
-      contactPersonName: '',
-      phone: '',
-      fullLoad: '',
-      pickupAddress: ''
+      customer: '',
+      date: '',
+      remark: ''
     },
     validationSchema: Yup.object({
-      shipmentdate: Yup.string().required('Required'),
-      expecteddate: Yup.string().required('Required'),
-      senderInfo: Yup.string().required('Required'),
-      receiverInfo: Yup.string().required('Required'),
-      deliveryAddress: Yup.string().required('Required'),
-      contactPerson: Yup.string().required('Required'),
-      phone: Yup.string().required('Required'),
-      fullLoad: Yup.string().required('Required'),
-      pickupAddress: Yup.string().required('Required')
+      customer: Yup.string().required('Customer is Required'),
+      date: Yup.string().required('Date is Required'),
+      remark: Yup.string().required('Remark is Required')
     }),
-    onSubmit: (values) => {
-      console.log(values);
+    onSubmit: async (values, { resetForm }) => {
+      console.log('values ===>', values);
+      try {
+        values.created_by = user._id;
+        const response = await postApi('/quote/add', values);
+        console.log('response =======>', response);
+
+        const quoteid = response.data.data._id;
+        console.log("quoteid ==>",quoteid);
+
+        //add this (quoteid) in updatedQuoteDetails
+        
+        if (quoteDetails) {
+          const updatedQuoteDetails = quoteDetails.map((detail) => ({
+            ...detail,
+            created_by: user._id,
+            quoteId: quoteid,
+          }));
+          console.log('updatedQuoteDetails ===>', updatedQuoteDetails);
+
+          const responseDetails = await postApi('/quote/addquotedetails', updatedQuoteDetails);
+          console.log('responseDetails ==>', responseDetails);
+        }
+
+        resetForm();
+        setQuoteDetails([]);
+      } catch (error) {
+        console.error(error);
+      }
+
+      handleCloseAdd();
+      formik.resetForm();
     }
   });
 
   return (
     <>
-      <AddQuotetionDetails open={openAdd} handleClose={handleCloseAdd} />
+      <AddQuotetionDetails open={openAdd} handleClose={handleCloseAdd} setMoreDetails={handleAddQuoteDetails} />
       <Box sx={{ padding: 4, borderRadius: '4px', backgroundColor: '#fff' }}>
         <form onSubmit={formik.handleSubmit}>
           <Grid container spacing={2}>
@@ -77,8 +125,11 @@ const AddQuotes = () => {
                 error={formik.touched.customer && Boolean(formik.errors.customer)}
                 helperText={formik.touched.customer && formik.errors.customer}
               >
-                <MenuItem value="sender1">Sender 1</MenuItem>
-                <MenuItem value="sender2">Sender 2</MenuItem>
+                {customers.map((option) => (
+                  <MenuItem key={option._id} value={option._id}>
+                    {option.name}
+                  </MenuItem>
+                ))}
               </TextField>
             </Grid>
 
@@ -86,12 +137,12 @@ const AddQuotes = () => {
               <FormLabel>Date</FormLabel>
               <TextField
                 type="date"
-                name="shipmentdate"
+                name="date"
                 fullWidth
-                value={formik.values.shipmentdate}
+                value={formik.values.date}
                 onChange={formik.handleChange}
-                error={formik.touched.shipmentdate && Boolean(formik.errors.shipmentdate)}
-                helperText={formik.touched.shipmentdate && formik.errors.shipmentdate}
+                error={formik.touched.date && Boolean(formik.errors.date)}
+                helperText={formik.touched.date && formik.errors.date}
                 InputLabelProps={{
                   shrink: true
                 }}
@@ -138,11 +189,19 @@ const AddQuotes = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    <TableRow>
-                      {/* <TableCell colSpan={8}>
-                      <Button variant="contained">Add</Button>
-                    </TableCell> */}
-                    </TableRow>
+                    {quoteDetails.map((detail, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{detail.from}</TableCell>
+                        <TableCell>{detail.to}</TableCell>
+                        <TableCell>{detail.description}</TableCell>
+                        <TableCell>{detail.size}</TableCell>
+                        <TableCell>{detail.weight}</TableCell>
+                        <TableCell>{detail.ETA}</TableCell>
+                        <TableCell>{detail.advance}</TableCell>
+                        <TableCell> {/* Add Action Buttons Here */} </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -155,7 +214,7 @@ const AddQuotes = () => {
                 </Button>
               </Grid>
               <Grid item>
-                <Button variant="contained" color="primary">
+                <Button variant="contained" color="primary" type="submit">
                   Save
                 </Button>
               </Grid>
