@@ -4,11 +4,11 @@ import { BaseSchema } from "../core/schema/base.schema.js";
 
 const shipmentSchema = new Schema({
   ...BaseSchema.obj,
-  date: {
+  shipmentdate: {
     type: Date,
     required: true,
   },
-  deliveryDate: {
+  expectedDeliveryDate: {
     type: Date,
     required: true,
   },

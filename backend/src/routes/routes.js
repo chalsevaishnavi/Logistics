@@ -64,10 +64,15 @@ router.post("/quote/add", quote.addQuote);
 router.post("/quote/addquotedetails", quote.addQuoteDetails);
 router.get("/quote/getallquotes/:id", quote.getAllQuotes);
 router.get("/quote/getquotedetails/:id", quote.getQuoteDetailsById);
+router.patch("/quote/updatequotedetails/:id", quote.updateQuoteById);
+router.delete("/quote/deletequotedetails/:id", quote.deleteQuoteById);
+
 
 
 router.post("/shipment/add", shipment.addShipment);
 router.post("/shipment/packages/add", shipment.addShipmentPackages);
 router.post("/shipment/insurance_add", shipment.addShipmentInsurance);
-
+router.get("/shipment/allshipments_details/:id",shipment.getAllShipmentDetails);
+router.get("/shipment/shipments_details/:id",shipment.getShipmentAllDetailsById);
+router.patch("/shipment/update_package/:id",shipment.updateShipmentPackage);
 export default router;

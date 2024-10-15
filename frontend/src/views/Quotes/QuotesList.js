@@ -11,6 +11,7 @@ import { getApi } from 'views/services/api';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import EditQuote from './EditQuote';
+import DeleteQuote from './DeleteQuote';
 
 // ----------------------------------------------------------------------
 
@@ -24,6 +25,7 @@ const QuotesList = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [quotesData, setQuotesData] = useState([]);
   const [openEdit, setEditOpen] = useState(false);
+  const [openDelete, setDeleteOpen] = useState(false);
 
   // Function to handle opening the popover
   const handlePopoverOpen = (event, row) => {
@@ -59,9 +61,15 @@ const QuotesList = () => {
   };
 
   const handleDelete = () => {
-    // Implement delete functionality
     console.log('Delete clicked for:', selectedRow);
+    if (selectedRow) {
+      setDeleteOpen(true);
+    }
     handlePopoverClose();
+  };
+
+  const handleDeleteClose = () => {
+    setDeleteOpen(false);
   };
 
   const fetchQuotesData = async () => {
@@ -82,7 +90,7 @@ const QuotesList = () => {
 
   useEffect(() => {
     fetchQuotesData();
-  }, []);
+  }, [openEdit, openDelete]);
 
   // Columns definition for DataGrid
   const columns = [
@@ -139,6 +147,7 @@ const QuotesList = () => {
   return (
     <>
       <EditQuote open={openEdit} handleClose={handleEditClose} data={selectedRow} />
+      <DeleteQuote open={openDelete} handleClose={handleDeleteClose} quoteid={selectedRow?._id}/>
       <Container>
         <Stack direction="row" alignItems="center" mb={5} justifyContent="space-between">
           <Typography variant="subtitle1" gutterBottom sx={{ fontSize: '1.3rem' }}>

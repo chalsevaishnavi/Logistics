@@ -40,6 +40,11 @@ const ViewQuotesDetails = Loadable(lazy(() => import('views/Quotes/ViewQuotesDet
 
 
 const ShipmentList = Loadable(lazy(() => import('views/Shipment/ShipmentList')));
+const ViewShipmentDetails = Loadable(lazy(() => import('views/Shipment/ViewShipmentDetails')));
+
+
+
+
 const PriceList = Loadable(lazy(() => import('views/Price/PriceList')));
 const VendorList = Loadable(lazy(() => import('views/Vendors/VendorList/ShowVendors')));
 const ShowVendorExpenses  = Loadable(lazy(() => import('views/Vendors/VendorExpenses/ShowVendorExpenses')));
@@ -279,6 +284,16 @@ const MainRoutes = {
         }
       ]
     },
+    {
+      path: 'admin',
+      children: [
+        {
+          path: '/admin/shipment_details/:id',
+          element: <ViewShipmentDetails />
+        }
+      ]
+    },
+
 
 
 

@@ -15,33 +15,54 @@ import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { FormLabel } from '@mui/material';
 import { useState } from 'react';
+import { postApi } from 'views/services/api';
+import { useEffect } from 'react';
 
 const AddInsurance = (props) => {
-  const { open, handleClose } = props;
+  const { open, handleClose, insuranceData, editData } = props;
+  console.log(' props : ', props);
+
   const validationSchema = yup.object({
-    subject: yup.string().required('Subject is required'),
-    receiver: yup.string().email().required('Receiver is required'),
-    lcv: yup.string().required('lcv is required')
+    ewayBill: yup.string().required('Eway Bill is required'),
+    insuranceNo: yup.string().required('Insurance No is required'),
+    insuranceAgent: yup.string().required('Insurance Agent is required')
   });
 
   // -----------   initialValues
   const initialValues = {
-    sender: '',
-    subject: '',
-    receiver: '',
-    lcv: ''
+    ewayBill: '',
+    insuranceNo: '',
+    insuranceAgent: ''
   };
+
+  useEffect(() => {
+    if (editData) {
+      formik.setValues({
+        ewayBill: editData.ewayBill || '',
+        insuranceNo: editData.insurance_no || '',
+        insuranceAgent: editData.insurance_agent || ''
+      });
+    }
+  }, [editData]);
 
   const formik = useFormik({
     initialValues,
     validationSchema,
     enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
-      // addClaim(values);
-      console.log('EmailValues', values);
+      console.log('values ==>', values);
+
+      values.created_by = JSON.parse(localStorage.getItem('user'))._id;
+      console.log('values.created_by ==>', values.created_by);
+
+      if (editData) {
+        console.log('Api hit for Edit Data');
+      } else {
+        const response = await postApi('/shipment/insurance_add', values);
+        console.log('response =======>', response);
+      }
+      insuranceData(values);
       handleClose();
-      formik.resetForm();
-      toast.success('Email Add successfully');
       resetForm();
     }
   });

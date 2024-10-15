@@ -12,7 +12,7 @@ const shipmentpackageSchema = new Schema({
   description: { type: String, required: true },
   invoiceNumber: { type: String, required: true },
   size: { type: Number, required: true },
-  weight: { type: Number, required: true },
+  weight: { type: String, required: true },
   quantity: { type: Number, required: true },
   value: { type: Number, required: true },
 });

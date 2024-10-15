@@ -1,26 +1,45 @@
 import React from 'react';
-import { Box, Grid, TextField, MenuItem, Typography, Button, FormLabel, Divider } from '@mui/material';
+import { Box, Grid, TextField, MenuItem, Typography, Button, FormLabel, Divider, FormHelperText } from '@mui/material';
 import { Form, useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton } from '@mui/material';
 import Radio from '@mui/material/Radio';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControl from '@mui/material/FormControl';
 // import AddCustomer from 'views/Customer/AddCustomer';
 import CreateCustomer from './CreateCustomer';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container } from '@mui/system';
 import AddVendor from 'views/Vendors/VendorList/AddVendor';
 import AddPackage from './AddPackage';
 import AddInsurance from './AddInsurance';
+import EditIcon from '@mui/icons-material/Edit';
+import ClearIcon from '@mui/icons-material/Clear';
+import { getApi, postApi } from 'views/services/api';
+import axios from 'axios';
+import { useLocation } from 'react-router-dom';
+import moment from 'moment';
 
 const AddShipment = () => {
   const [open, setOpenAdd] = useState(false);
   const [openVendor, setOpenAddForVendor] = useState(false);
-  const [openPackage, setOpenAddForPackage] = useState(false); 
+  const [openPackage, setOpenAddForPackage] = useState(false);
   const [openInsurance, setOpenAddForInsurance] = useState(false);
-  
+  const [packageDetails, setPackageDetails] = useState([]);
+  const [insuranceDetails, setInsuranceDetails] = useState([]);
+  const [vendorData, setVendorData] = useState([]);
+  const [customerData, setCustomerData] = useState([]);
+
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  const location = useLocation();
+  console.log('location : ', location);
+
+  const { shipment, mode } = location.state || {};
+  console.log('location.state : ', location.state);
+  console.log('shipment : ', shipment);
+  console.log('mode : ', mode);
 
   const handleOpenAdd = () => {
     setOpenAdd(true);
@@ -32,27 +51,107 @@ const AddShipment = () => {
 
   const handleOpenAddForVendor = () => {
     setOpenAddForVendor(true);
-  }
+  };
 
   const handleCloseAddForVendor = () => {
     setOpenAddForVendor(false);
-  }
+  };
 
   const handleOpenAddForPackage = () => {
     setOpenAddForPackage(true);
-  }
+  };
 
   const handleCloseAddForPackage = () => {
     setOpenAddForPackage(false);
-  }
+  };
 
   const handleOpenAddForInsurance = () => {
     setOpenAddForInsurance(true);
-  }
+  };
 
   const handleCloseAddForInsurance = () => {
     setOpenAddForInsurance(false);
-  }
+  };
+
+  const handleAddPackageData = (details) => {
+    console.log('details ==================--->', details);
+    setPackageDetails(details);
+  };
+  console.log('packageDetails ===>', packageDetails);
+
+  const handleAddInsurance = (details) => {
+    console.log('details--->', details);
+    setInsuranceDetails(details);
+  };
+  console.log('insuranceDetails :', insuranceDetails);
+
+  const fetchVendors = async () => {
+    try {
+      const response = await getApi(`/user/getalluser_byId/${user._id}`);
+      const filterVendors = response.data.data.filter((item) => item.role === 'Vendor');
+      const filterCustomer = response.data.data.filter((item) => item.role === 'Customer');
+
+      console.log('filterVendors :', filterVendors);
+      console.log('filterCustomer :', filterCustomer);
+
+      setVendorData(filterVendors);
+      setCustomerData(filterCustomer);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchVendors();
+  }, []);
+
+  useEffect(() => {
+    if (shipment && mode) {
+      formik.setValues({
+        shipmentdate: moment(shipment.shipmentdate).format('YYYY-MM-DD') || '',
+        expecteddate: moment(shipment.expectedDeliveryDate).format('YYYY-MM-DD') || '',
+        senderInfo: shipment.customerdata1._id || '',
+        receiverInfo: shipment.customerdata2._id || '',
+        deliveryAddress: shipment.deliveryAddress || '',
+
+        contactPersonName: shipment.package_contact_person_name || '',
+        contactPersonNumber: shipment.package_contact_person_phone || '',
+        fullLoad: shipment.package_transaction_type || '',
+        pickupAddress: shipment.package_pickup_address || '',
+
+        driverName: shipment.transport_driver_name || '',
+        driverNumber: shipment.transport_driver_phone || '',
+        vehicleDetails: shipment.transport_driver_vehicledetails || '',
+        userNotes: shipment.usernote || '',
+
+        vendor: shipment.data._id || '',
+        memoNumber: shipment.vendordata.memoNumber || '',
+        commission: shipment.vendordata.commission || '',
+        cash: shipment.vendordata.cash || '',
+        total: shipment.vendordata.total || '',
+        advance: shipment.vendordata.advance || '',
+
+        transportation: shipment.charge_transportation || '',
+        handling: shipment.charge_handling || '',
+        halting: shipment.charge_halting || '',
+        insurance: shipment.charge_insurance || '',
+        cartage: shipment.charge_cartage || '',
+        overweight: shipment.charge_over_weight || '',
+        odcCharges: shipment.charge_odc || '',
+        taxPercent: shipment.charge_tax_percent || '',
+        advancePaid: shipment.charge_advance_paid || '',
+        discount: shipment.discount || '',
+
+        total_tax: shipment.total_tax || '',
+        total_amount: shipment.total_amount || '',
+        total_balance: shipment.total_balance || '',
+
+        remarks: shipment.remarks || '',
+        billToOption: shipment.bill_to || ''
+      });
+    }
+    // setPackageDetails(shipment.packagedata);
+  }, [shipment, mode]);
 
   const formik = useFormik({
     initialValues: {
@@ -61,34 +160,153 @@ const AddShipment = () => {
       senderInfo: '',
       receiverInfo: '',
       deliveryAddress: '',
+
       contactPersonName: '',
-      phone: '',
+      contactPersonNumber: '',
       fullLoad: '',
-      pickupAddress: ''
+      pickupAddress: '',
+
+      driverName: '',
+      driverNumber: '',
+      vehicleDetails: '',
+      userNotes: '',
+
+      vendor: '',
+      memoNumber: '',
+      commission: '',
+      cash: '',
+      total: '',
+      advance: '',
+
+      transportation: '',
+      handling: '',
+      halting: '',
+      insurance: '',
+      cartage: '',
+      overweight: '',
+      odcCharges: '',
+      taxPercent: '',
+      advancePaid: '',
+      discount: '',
+
+      remarks: '',
+      billToOption: ''
     },
     validationSchema: Yup.object({
-      shipmentdate: Yup.string().required('Required'),
-      expecteddate: Yup.string().required('Required'),
-      senderInfo: Yup.string().required('Required'),
-      receiverInfo: Yup.string().required('Required'),
-      deliveryAddress: Yup.string().required('Required'),
-      contactPerson: Yup.string().required('Required'),
-      phone: Yup.string().required('Required'),
-      fullLoad: Yup.string().required('Required'),
-      pickupAddress: Yup.string().required('Required')
+      shipmentdate: Yup.string().required('Shipment Date is Required'),
+      expecteddate: Yup.string().required('Expected Date is Required'),
+      senderInfo: Yup.string().required('Sender Info is Required'),
+      receiverInfo: Yup.string().required('Receiver Info is Required'),
+      deliveryAddress: Yup.string().required('Delivery Address is Required'),
+
+      contactPersonName: Yup.string().required('Contact Person Name is Required'),
+      contactPersonNumber: Yup.string().required('Contact Person Number is Required'),
+      fullLoad: Yup.string().required('Load Type is Required'),
+      pickupAddress: Yup.string().required('Pickup Address is Required'),
+
+      driverName: Yup.string().required('Driver Name is Required'),
+      driverNumber: Yup.string().required('Driver Number is Required'),
+      vehicleDetails: Yup.string().required('Vehicle Details is Required'),
+      userNotes: Yup.string().required('User Notes is Required'),
+
+      vendor: Yup.string().required('Vendor is Required'),
+      memoNumber: Yup.string().required('Memo Number is Required'),
+      commission: Yup.string().required('Commission is Required'),
+      cash: Yup.string().required('Cash is Required'),
+      total: Yup.string().required('Total is Required'),
+      advance: Yup.string().required('Advance is Required'),
+
+      transportation: Yup.string().required('Transportation is Required'),
+      handling: Yup.string().required('Handling is Required'),
+      halting: Yup.string().required('Halting is Required'),
+      insurance: Yup.string().required('Insurance is Required'),
+      cartage: Yup.string().required('Cartage is Required'),
+      overweight: Yup.string().required('Over Weight Charges is Required'),
+      odcCharges: Yup.string().required('ODC Charges is Required'),
+      taxPercent: Yup.string().required('Tax Percent is Required'),
+      advancePaid: Yup.string().required('Advance Paid Amount is Required'),
+      discount: Yup.string().required('Discount is Required')
     }),
-    onSubmit: (values) => {
-      console.log(values);
+
+    onSubmit: async (values, { resetForm }) => {
+      console.log('values===>', values);
+      try {
+        values.created_by = JSON.parse(localStorage.getItem('user'))._id;
+        console.log('values.created_by ==>', values.created_by);
+        console.log('final values ====================>', values);
+
+        if (shipment && mode) {
+          console.log('api hit for edit only .................');
+        } else {
+          postApi('/shipment/add', values)
+            .then((response) => {
+              console.log('response ====>', response);
+              resetForm();
+            })
+            .catch((error) => {
+              console.log('error ', error);
+            });
+        }
+      } catch (error) {
+        console.error(error);
+      }
+
+      resetForm();
+      toast.success('Shipment added successfully!!');
     }
   });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    formik.setFieldValue(name, value);
+
+    const values = { ...formik.values, [name]: value };
+    console.log('set values :', values);
+
+    // Calculate total
+    const total =
+      values.transportation + values.handling + values.halting + values.insurance + values.cartage + values.overweight + values.odcCharges;
+    console.log('total : ', total);
+
+    // Calculate tax
+    const taxPercent = (total * values.taxPercent) / 100;
+    console.log('taxPercent :', taxPercent);
+    formik.setFieldValue('total_tax', taxPercent);
+
+    // Calculate total amount after tax and discount
+    const totalAfterAddTax = total + taxPercent;
+    console.log('totalAfterAddTax :', totalAfterAddTax);
+    formik.setFieldValue('total_amount', totalAfterAddTax - values.discount);
+    console.log('total_amount :', totalAfterAddTax - values.discount);
+
+    // Calculate balance after advance paid
+    formik.setFieldValue('total_balance', totalAfterAddTax - values.discount - values.advancePaid);
+    console.log('total_balance :', totalAfterAddTax - values.discount - values.advancePaid);
+  };
+
+  const handleEditClickForPackage = () => {
+    console.log("Edit button clicked for package");
+    if(shipment && mode){
+      setOpenAddForPackage(true);
+      setPackageDetails(shipment.packagedata);
+    }
+  };
+
+  const handleEditClickForInsurance = () => {
+    console.log("Edit button clicked for insurance");
+    if(shipment && mode){
+      setOpenAddForInsurance(true);
+      setInsuranceDetails(shipment.insurancedata);
+    }
+
+  }
 
   return (
     <>
       <CreateCustomer open={open} handleClose={handleCloseAdd} />
-      <AddVendor open={openVendor} handleClose={handleCloseAddForVendor}/>
-      <AddPackage open={openPackage} handleClose={handleCloseAddForPackage}/>
-      <AddInsurance open={openInsurance} handleClose={handleCloseAddForInsurance}/>
-      
+      <AddVendor open={openVendor} handleClose={handleCloseAddForVendor} />
+      <AddPackage open={openPackage} handleClose={handleCloseAddForPackage} packageData={handleAddPackageData} editData={packageDetails}/>
+      <AddInsurance open={openInsurance} handleClose={handleCloseAddForInsurance} insuranceData={handleAddInsurance} editData={insuranceDetails} />
 
       <Box sx={{ padding: 4, borderRadius: '4px', backgroundColor: '#fff' }}>
         <Typography variant="subtitle1" gutterBottom sx={{ fontSize: '1.3rem' }}>
@@ -138,8 +356,11 @@ const AddShipment = () => {
                 error={formik.touched.senderInfo && Boolean(formik.errors.senderInfo)}
                 helperText={formik.touched.senderInfo && formik.errors.senderInfo}
               >
-                <MenuItem value="sender1">Sender 1</MenuItem>
-                <MenuItem value="sender2">Sender 2</MenuItem>
+                {customerData.map((option) => (
+                  <MenuItem key={option._id} value={option._id}>
+                    {option.name}
+                  </MenuItem>
+                ))}
               </TextField>
             </Grid>
             <Grid item xs={12} md={6}>
@@ -154,8 +375,11 @@ const AddShipment = () => {
                 error={formik.touched.receiverInfo && Boolean(formik.errors.receiverInfo)}
                 helperText={formik.touched.receiverInfo && formik.errors.receiverInfo}
               >
-                <MenuItem value="receiver1">Receiver 1</MenuItem>
-                <MenuItem value="receiver2">Receiver 2</MenuItem>
+                {customerData.map((option) => (
+                  <MenuItem key={option._id} value={option._id}>
+                    {option.name}
+                  </MenuItem>
+                ))}
               </TextField>
             </Grid>
             <Grid item xs={12} md={6}>
@@ -208,13 +432,13 @@ const AddShipment = () => {
             <Grid item xs={12} md={4}>
               <TextField
                 label="Contact Number"
-                name="contactPersonName"
+                name="contactPersonNumber"
                 fullWidth
                 variant="outlined"
-                value={formik.values.contactPersonName}
+                value={formik.values.contactPersonNumber}
                 onChange={formik.handleChange}
-                error={formik.touched.contactPersonName && Boolean(formik.errors.contactPersonName)}
-                helperText={formik.touched.contactPersonName && formik.errors.contactPersonName}
+                error={formik.touched.contactPersonNumber && Boolean(formik.errors.contactPersonNumber)}
+                helperText={formik.touched.contactPersonNumber && formik.errors.contactPersonNumber}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -327,16 +551,19 @@ const AddShipment = () => {
                 <FormLabel>Select Vendor</FormLabel>
                 <TextField
                   select
-                  name="selectVendor"
+                  name="vendor"
                   fullWidth
                   variant="outlined"
-                  value={formik.values.selectVendor}
+                  value={formik.values.vendor}
                   onChange={formik.handleChange}
-                  error={formik.touched.selectVendor && Boolean(formik.errors.selectVendor)}
-                  helperText={formik.touched.selectVendor && formik.errors.selectVendor}
+                  error={formik.touched.vendor && Boolean(formik.errors.vendor)}
+                  helperText={formik.touched.vendor && formik.errors.vendor}
                 >
-                  <MenuItem value="FullLoad">Vendor 1</MenuItem>
-                  <MenuItem value="PartLoad">Vendor 2</MenuItem>
+                  {vendorData.map((option) => (
+                    <MenuItem key={option._id} value={option._id}>
+                      {option.name}
+                    </MenuItem>
+                  ))}
                 </TextField>
               </Grid>
 
@@ -392,6 +619,20 @@ const AddShipment = () => {
                   onChange={formik.handleChange}
                   error={formik.touched.total && Boolean(formik.errors.total)}
                   helperText={formik.touched.total && formik.errors.total}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={3}>
+                <FormLabel>Advance</FormLabel>
+                <TextField
+                  name="advance"
+                  type="number"
+                  fullWidth
+                  variant="outlined"
+                  value={formik.values.advance}
+                  onChange={formik.handleChange}
+                  error={formik.touched.advance && Boolean(formik.errors.advance)}
+                  helperText={formik.touched.advance && formik.errors.advance}
                 />
               </Grid>
 
@@ -521,7 +762,7 @@ const AddShipment = () => {
                   fullWidth
                   variant="outlined"
                   value={formik.values.taxPercent}
-                  onChange={formik.handleChange}
+                  onChange={handleChange}
                   error={formik.touched.taxPercent && Boolean(formik.errors.taxPercent)}
                   helperText={formik.touched.taxPercent && formik.errors.taxPercent}
                 />
@@ -535,7 +776,7 @@ const AddShipment = () => {
                   fullWidth
                   variant="outlined"
                   value={formik.values.advancePaid}
-                  onChange={formik.handleChange}
+                  onChange={handleChange}
                   error={formik.touched.advancePaid && Boolean(formik.errors.advancePaid)}
                   helperText={formik.touched.advancePaid && formik.errors.advancePaid}
                 />
@@ -549,7 +790,7 @@ const AddShipment = () => {
                   fullWidth
                   variant="outlined"
                   value={formik.values.discount}
-                  onChange={formik.handleChange}
+                  onChange={handleChange}
                   error={formik.touched.discount && Boolean(formik.errors.discount)}
                   helperText={formik.touched.discount && formik.errors.discount}
                 />
@@ -571,7 +812,7 @@ const AddShipment = () => {
                 <Table aria-label="Package Details">
                   <TableHead>
                     <TableRow>
-                      <TableCell>#</TableCell>
+                      {/* <TableCell>#</TableCell> */}
                       <TableCell>Description</TableCell>
                       <TableCell>Invoice No</TableCell>
                       <TableCell>Size</TableCell>
@@ -582,9 +823,62 @@ const AddShipment = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
+                    {mode ? (
+                      <>
+                        <TableRow>
+                          <TableCell>{shipment?.packagedata?.description || 'N/A'}</TableCell>
+                          <TableCell>{shipment?.packagedata?.invoiceNumber || 'N/A'}</TableCell>
+                          <TableCell>{shipment?.packagedata?.size || 'N/A'}</TableCell>
+                          <TableCell>{shipment?.packagedata?.weight || 'N/A'}</TableCell>
+                          <TableCell>{shipment?.packagedata?.quantity || 'N/A'}</TableCell>
+                          <TableCell>{shipment?.packagedata?.value || 'N/A'}</TableCell>
+                          {packageDetails ? (
+                            <>
+                              <TableCell>
+                                <IconButton aria-label="edit" onClick={handleEditClickForPackage}>
+                                  <EditIcon />
+                                </IconButton>
+                                <IconButton aria-label="clear">
+                                  <ClearIcon />
+                                </IconButton>
+                              </TableCell>
+                            </>
+                          ) : (
+                            <TableCell>No Action Available</TableCell>
+                          )}
+                        </TableRow>
+                      </>
+                    ) : (
+                      <>
+                        <TableRow>
+                          <TableCell>{packageDetails?.description || 'N/A'}</TableCell>
+                          <TableCell>{packageDetails?.invoiceNumber || 'N/A'}</TableCell>
+                          <TableCell>{packageDetails?.size || 'N/A'}</TableCell>
+                          <TableCell>{packageDetails?.weight || 'N/A'}</TableCell>
+                          <TableCell>{packageDetails?.quantity || 'N/A'}</TableCell>
+                          <TableCell>{packageDetails?.declaredValue || 'N/A'}</TableCell>
+                          {packageDetails ? (
+                            <>
+                              <TableCell>
+                                <IconButton aria-label="edit">
+                                  <EditIcon />
+                                </IconButton>
+                                <IconButton aria-label="edit">
+                                  <ClearIcon />
+                                </IconButton>
+                              </TableCell>
+                            </>
+                          ) : (
+                            <TableCell>No Action Available</TableCell>
+                          )}
+                        </TableRow>
+                      </>
+                    )}
                     <TableRow>
                       <TableCell colSpan={8}>
-                        <Button variant="contained" onClick={handleOpenAddForPackage}>Add</Button>
+                        <Button variant="contained" onClick={handleOpenAddForPackage}>
+                          Add
+                        </Button>
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -593,7 +887,7 @@ const AddShipment = () => {
             </Grid>
           </Grid>
 
-          <Divider sx={{ my: 4 }} />
+          {/* <Divider sx={{ my: 4 }} /> */}
 
           <Grid container>
             <Grid item xs={12}>
@@ -607,16 +901,64 @@ const AddShipment = () => {
                 <Table aria-label="Package Details">
                   <TableHead>
                     <TableRow>
-                      <TableCell>#</TableCell>
+                      {/* <TableCell>#</TableCell> */}
                       <TableCell>Eway Bill</TableCell>
                       <TableCell>Insurance No</TableCell>
                       <TableCell>Insurance Agent</TableCell>
+                      <TableCell>Action</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
+                    {mode ? (
+                      <>
+                        <TableRow>
+                          <TableCell>{shipment.insurancedata.eway_bill || 'N/A'}</TableCell>
+                          <TableCell>{shipment.insurancedata.insurance_no || 'N/A'}</TableCell>
+                          <TableCell>{shipment.insurancedata.insurance_agent || 'N/A'}</TableCell>
+                          {insuranceDetails ? (
+                            <>
+                              <TableCell>
+                                <IconButton aria-label="edit" onClick={handleEditClickForInsurance}>
+                                  <EditIcon />
+                                </IconButton>
+                                <IconButton aria-label="edit">
+                                  <ClearIcon />
+                                </IconButton>
+                              </TableCell>
+                            </>
+                          ) : (
+                            <TableCell>No Action Available</TableCell>
+                          )}
+                        </TableRow>
+                      </>
+                    ) : (
+                      <>
+                        <TableRow>
+                          <TableCell>{insuranceDetails?.ewayBill || 'N/A'}</TableCell>
+                          <TableCell>{insuranceDetails?.insuranceNo || 'N/A'}</TableCell>
+                          <TableCell>{insuranceDetails?.insuranceAgent || 'N/A'}</TableCell>
+                          {insuranceDetails ? (
+                            <>
+                              <TableCell>
+                                <IconButton aria-label="edit">
+                                  <EditIcon />
+                                </IconButton>
+                                <IconButton aria-label="edit">
+                                  <ClearIcon />
+                                </IconButton>
+                              </TableCell>
+                            </>
+                          ) : (
+                            <TableCell>No Action Available</TableCell>
+                          )}
+                        </TableRow>
+                      </>
+                    )}
                     <TableRow>
                       <TableCell colSpan={8}>
-                        <Button variant="contained" onClick={handleOpenAddForInsurance}>Add</Button>
+                        <Button variant="contained" onClick={handleOpenAddForInsurance}>
+                          Add
+                        </Button>
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -649,9 +991,30 @@ const AddShipment = () => {
               <Grid item xs={12} md={2} />
 
               <Grid item xs={12} md={4}>
-                <TextField size="small" type="number" defaultValue="0" inputProps={{ style: { textAlign: 'left' } }} sx={{ mb: 1 }} />
-                <TextField size="small" type="number" defaultValue="0" inputProps={{ style: { textAlign: 'left' } }} sx={{ mb: 1 }} />
-                <TextField size="small" type="number" defaultValue="0" inputProps={{ style: { textAlign: 'left' } }} sx={{ mb: 1 }} />
+                <TextField
+                  size="small"
+                  type="number"
+                  value={formik.values.total_tax}
+                  defaultValue="0"
+                  inputProps={{ style: { textAlign: 'left' } }}
+                  sx={{ mb: 1 }}
+                />
+                <TextField
+                  size="small"
+                  type="number"
+                  value={formik.values.total_amount}
+                  defaultValue="0"
+                  inputProps={{ style: { textAlign: 'left' } }}
+                  sx={{ mb: 1 }}
+                />
+                <TextField
+                  size="small"
+                  type="number"
+                  value={formik.values.total_balance}
+                  defaultValue="0"
+                  inputProps={{ style: { textAlign: 'left' } }}
+                  sx={{ mb: 1 }}
+                />
               </Grid>
             </Grid>
           </Grid>
@@ -659,28 +1022,33 @@ const AddShipment = () => {
           <Grid container>
             <Grid item xs={12} md={6}>
               <TextField
-                label="Remarks"
-                name="Remarks"
+                label="remarks"
+                name="remarks"
                 multiline
                 rows={4}
                 fullWidth
                 variant="outlined"
-                value={formik.values.Remarks}
+                value={formik.values.remarks}
                 onChange={formik.handleChange}
-                error={formik.touched.Remarks && Boolean(formik.errors.Remarks)}
-                helperText={formik.touched.Remarks && formik.errors.Remarks}
+                error={formik.touched.remarks && Boolean(formik.errors.remarks)}
+                helperText={formik.touched.remarks && formik.errors.remarks}
               />
             </Grid>
             <Grid item xs={12} md={4} />
 
             <Grid item xs={12} md={2}>
-              <FormControl>
+              <FormControl component="fieldset">
                 <FormLabel id="demo-controlled-radio-buttons-group" sx={{ fontSize: '1rem' }} variant="subtitle1">
                   Bill To
                 </FormLabel>
-                <RadioGroup aria-labelledby="demo-controlled-radio-buttons-group" name="controlled-radio-buttons-group" value={''}>
-                  <FormControlLabel value="female" control={<Radio />} label="Consignor" />
-                  <FormControlLabel value="male" control={<Radio />} label="Consignee" />
+                <RadioGroup
+                  aria-labelledby="demo-controlled-radio-buttons-group"
+                  name="billToOption"
+                  value={formik.values.billToOption}
+                  onChange={formik.handleChange}
+                >
+                  <FormControlLabel value="Consignor" control={<Radio />} label="Consignor" />
+                  <FormControlLabel value="Consignee" control={<Radio />} label="Consignee" />
                 </RadioGroup>
               </FormControl>
             </Grid>

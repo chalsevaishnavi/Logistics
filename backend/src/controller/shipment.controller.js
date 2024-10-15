@@ -37,4 +37,37 @@ export class ShipmentController {
       return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
     }
   }
+
+  async updateShipmentPackage(req , res) {
+    try {
+      const result = await shipmentservices.updateShipmentPackage(req);
+      console.log("result ============>", result);
+
+      return sendResponse(res, responseCode.OK, result);
+    } catch (error) {
+      return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
+    }
+  }
+
+  async getAllShipmentDetails(req, res) {
+    try {
+      const result = await shipmentservices.getAllShipmentDetails(req);
+      console.log("result===>", result);
+
+      return sendResponse(res, responseCode.OK, result);
+    } catch (error) {
+      return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
+    }
+  }
+
+  async getShipmentAllDetailsById(req, res) {
+    try {
+      const result = await shipmentservices.getShipmentAllDetailsById(req);
+      console.log("result===>", result);
+
+      return sendResponse(res, responseCode.OK, result);
+    } catch (error) {
+      return sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, null, error);
+    }
+  }
 }

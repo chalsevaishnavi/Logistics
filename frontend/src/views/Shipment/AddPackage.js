@@ -15,33 +15,69 @@ import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { FormLabel } from '@mui/material';
 import { useState } from 'react';
+import { postApi, patchApi } from 'views/services/api';
+import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const AddPackage = (props) => {
-  const { open, handleClose } = props;
+  const { open, handleClose, packageData, editData } = props;
+  console.log('props : ', props);
+  console.log('editData for package  : ', editData);
+
   const validationSchema = yup.object({
-    subject: yup.string().required('Subject is required'),
-    receiver: yup.string().email().required('Receiver is required'),
-    lcv: yup.string().required('lcv is required')
+    description: yup.string().required('Description is required'),
+    invoiceNumber: yup.string().required('Invoice Number is required'),
+    size: yup.string().required('Size is required'),
+    weight: yup.string().required('Weight is required'),
+    quantity: yup.number().required('Quantity is required'),
+    declaredValue: yup.number().required('Declared Value is required')
   });
 
   // -----------   initialValues
   const initialValues = {
-    sender: '',
-    subject: '',
-    receiver: '',
-    lcv: ''
+    description: '',
+    invoiceNumber: '',
+    size: '',
+    weight: '',
+    quantity: '',
+    declaredValue: ''
   };
+
+  useEffect(() => {
+    if (open && editData) {
+      formik.setValues({
+        description: editData.description || '',
+        invoiceNumber: editData.invoiceNumber || '',
+        size: editData.size || '',
+        weight: editData.weight || '',
+        quantity: editData.quantity || '',
+        declaredValue: editData.value || ''
+      });
+    }
+  }, [open,editData]);
 
   const formik = useFormik({
     initialValues,
     validationSchema,
     enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
-      // addClaim(values);
-      console.log('EmailValues', values);
+      console.log('values =======>', values);
+
+      values.created_by = JSON.parse(localStorage.getItem('user'))._id;
+      console.log('values.created_by ==>', values.created_by);
+
+      if (editData) {
+        console.log('Api hit for Edit Data');
+        const response = await patchApi(`/shipment/update_package/${editData?._id}`, values);
+        console.log('response =======>', response);
+
+      } else {
+        const response = await postApi('/shipment/packages/add', values);
+        console.log('response =======>', response);
+      }
+
+      packageData(values);
       handleClose();
-      formik.resetForm();
-      toast.success('Email Add successfully');
       resetForm();
     }
   });
@@ -127,7 +163,6 @@ const AddPackage = (props) => {
                     helperText={formik.touched.weight && formik.errors.weight}
                   />
                 </Grid>
-
 
                 <Grid item xs={12} sm={12} md={4}>
                   {/* <FormLabel>Quantity</FormLabel> */}

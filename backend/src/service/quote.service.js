@@ -182,28 +182,30 @@ export class QuotesServices {
       throw error;
     }
   }
-}
 
-const updateQuoteById = async (req) => {
-  try {
-    const {
-      ETA,
-      advance,
-      customer,
-      date,
-      description,
-      from,
-      to,
-      rate,
-      remark,
-      size,
-      weight,
-    } = req.body;
+  async updateQuoteById(req) {
+    try {
+      const {
+        ETA,
+        advance,
+        customer,
+        date,
+        description,
+        from,
+        to,
+        rate,
+        remark,
+        size,
+        weight,
+      } = req.body;
 
-    console.log("req.body ==>", req.body);
+      console.log("id ==>", req.params.id);
+      console.log("req.body ==>", req.body);
 
-    if (customer && date && remark) {
-      const result = await QuoteModel.updateOne(
+      let quoteUpdateResult = null;
+      let quoteDetailsUpdateResult = null;
+
+      quoteUpdateResult = await QuoteModel.updateOne(
         {
           _id: req.params.id,
         },
@@ -215,10 +217,12 @@ const updateQuoteById = async (req) => {
           },
         }
       );
-    } else {
-      const result = await QuoteDetailsModel.updateOne(
+
+      console.log("quoteUpdateResult : ", quoteUpdateResult);
+
+      quoteDetailsUpdateResult = await QuoteDetailsModel.updateOne(
         {
-          quoteId: req.params.id,
+          quoteId: new mongoose.Types.ObjectId(req.params.id),
         },
         {
           $set: {
@@ -233,9 +237,50 @@ const updateQuoteById = async (req) => {
           },
         }
       );
+      console.log("quoteDetailsUpdateResult : ", quoteDetailsUpdateResult);
+      return {
+        quoteUpdateResult,
+        quoteDetailsUpdateResult,
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
-  } catch (error) {
-    console.error(error);
-    throw error;
   }
-};
+
+  async deleteQuoteById(req) {
+    try {
+      console.log("req.params.id :",req.params.id);
+      
+      const quoteUpdateResult = await QuoteModel.updateOne(
+        { _id: req.params.id },
+        {
+          $set: {
+            deleted: true,
+          },
+        }
+      );
+
+      console.log("quoteUpdateResult for delete :", quoteUpdateResult);
+
+      const quoteDetailsUpdateResult = await QuoteDetailsModel.updateOne(
+        { quoteId: req.params.id },
+        {
+          $set: {
+            deleted: true,
+          },
+        }
+      );
+
+      console.log("quoteDetailsUpdateResult for delete :", quoteDetailsUpdateResult);
+
+      return {
+        quoteUpdateResult,
+        quoteDetailsUpdateResult,
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+}

@@ -24,5 +24,17 @@ export class ShipmentPackageServices {
     }
   }
 
+  async editPackages(req) {
+    try {
+      
+      
+
+      
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
  
 }

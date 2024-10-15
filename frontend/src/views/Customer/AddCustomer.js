@@ -61,9 +61,9 @@ const AddCustomer = () => {
       }
 
       handleClose();
-      formik.resetForm();
-      toast.success('Admin added successfully!!');
       resetForm();
+      toast.success('Admin added successfully!!');
+      
     }
   });
 

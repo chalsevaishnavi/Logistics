@@ -7,6 +7,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import ClearIcon from '@mui/icons-material/Clear';
+import { postApi } from 'views/services/api';
 
 const CreateCustomer = (props) => {
   const { open, handleClose } = props;
@@ -18,25 +19,45 @@ const CreateCustomer = (props) => {
       name: '',
       companyName: '',
       gstNo: '',
-      phone: '',
+      phoneno: '',
       pincode: '',
       address: '',
       userNotes: '',
-      showRates: false,
+      showRates: false
     },
     validationSchema: Yup.object({
       email: Yup.string().email('Invalid email').required('Required'),
       password: Yup.string().required('Required'),
       name: Yup.string().required('Required'),
-      companyName: Yup.string().required('Required'),
-      gstNo: Yup.string().required('Required'),
-      phone: Yup.string().required('Required'),
+      // companyName: Yup.string().required('Required'),
+      // gstNo: Yup.string().required('Required'),
+      phoneno: Yup.string().required('Required'),
+      // pincode: Yup.number().required('Required'),
       address: Yup.string().required('Required'),
+      // userNotes: Yup.string().required('Required')
     }),
     onSubmit: (values) => {
-      console.log(values);
-      handleClose(); // Close modal after submission
-    },
+      console.log('values : ', values);
+      try {
+        values.created_by = JSON.parse(localStorage.getItem('user'))._id;
+        console.log('values.created_by ==>', values.created_by);
+
+        postApi('/user/add', values)
+          .then((response) => {
+            console.log('response ==>', response);
+            resetForm();
+          })
+          .catch((error) => {
+            console.log('error ', error);
+          });
+      } catch (error) {
+        console.error(error);
+      }
+
+      handleClose();
+      resetForm();
+      toast.success('Admin added successfully!!');
+    }
   });
 
   return (
@@ -113,14 +134,14 @@ const CreateCustomer = (props) => {
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
-                label="Phone Number"
-                name="phone"
+                label="PhoneNo Number"
+                name="phoneno"
                 fullWidth
                 variant="outlined"
-                value={formik.values.phone}
+                value={formik.values.phoneno}
                 onChange={formik.handleChange}
-                error={formik.touched.phone && Boolean(formik.errors.phone)}
-                helperText={formik.touched.phone && formik.errors.phone}
+                error={formik.touched.phoneno && Boolean(formik.errors.phoneno)}
+                helperText={formik.touched.phoneno && formik.errors.phoneno}
               />
             </Grid>
 
@@ -172,10 +193,7 @@ const CreateCustomer = (props) => {
                 <Typography>Show Rates</Typography>
               </Grid>
               <Grid item>
-                <Switch
-                  checked={formik.values.showRates}
-                  onChange={(e) => formik.setFieldValue('showRates', e.target.checked)}
-                />
+                <Switch checked={formik.values.showRates} onChange={(e) => formik.setFieldValue('showRates', e.target.checked)} />
               </Grid>
             </Grid>
           </Grid>

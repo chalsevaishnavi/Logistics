@@ -25,7 +25,7 @@ import { getApi } from 'views/services/api.js';
 
 const EditQuote = (props) => {
   const { open, handleClose, data } = props;
-  console.log('props here ============>', props);
+  console.log('props here ==============>', props);
 
   const user = JSON.parse(localStorage.getItem('user'));
   console.log("user",user);
@@ -83,13 +83,13 @@ const EditQuote = (props) => {
     validationSchema,
     enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
-      console.log('values on edit time =======>', values);
+      console.log('values on edit time =========>', values);
 
       try {
        
-        patchApi(`/user/updateone/${data._id}`, values)
+        patchApi(`/quote/updatequotedetails/${data?._id}`, values)
           .then((response) => {
-            console.log('response ', response);
+            console.log('response ====>', response);
             resetForm();
             toast.success('Admin updated successfully');
           })
@@ -112,8 +112,6 @@ const EditQuote = (props) => {
           style={{
             display: 'flex',
             justifyContent: 'space-between'
-            // backgroundColor: "#2b4054",
-            // color: "white",
           }}
         >
           <Typography variant="h6">Edit Quote Details</Typography>
